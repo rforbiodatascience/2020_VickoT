@@ -1,0 +1,134 @@
+---
+title: "Lecture 5"
+author: "Viktor"
+date: '2020-03-02'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+#install.packages("tidyverse")
+```
+
+```{r}
+library(tidyverse)
+library(broom)
+```
+
+T1: Using the diabetes data, convert variables height and weight to metric system and re-create the below plot (hint: facetting rows and columns requires to wrap the variable names in vars())
+
+~ try to avoid when using facet_wrap. Use facet_wrap(vars(...))
+
+```{r}
+diabetes2_5 <- diabetes2 %>%
+  mutate(height = height * 2.54, weight = weight * 0.45359237)
+  
+diabetes2_5 %>% 
+  ggplot(mapping = aes(x = height, y = weight))+
+  geom_point()+
+  geom_smooth(method = lm)+
+  facet_grid(gender ~ location)
+  #facet_wrap(vars(location, gender))
+```
+
+T2: Create the below nested tibble
+
+Group location and gender, peform lm on each group
+
+```{r}
+groupLG = diabetes2_5 %>% 
+  group_by(location,gender) %>% 
+  nest()
+```
+
+```{r}
+H_W_model <- function(df){
+  lm(weight ~ height, data = df)
+}
+```
+
+
+```{r}
+groupLG <- groupLG %>% 
+  mutate(model = map(data, H_W_model))
+groupLG
+```
+
+
+T3: Create the below nested tibble
+
+
+```{r}
+glance <- groupLG %>% 
+  mutate(glance = map(model, broom::glance))  %>% 
+  unnest(glance)
+
+glance
+```
+
+T4: Create the below nested tibble
+
+```{r}
+tidy <- groupLG %>% 
+  mutate(tidy = map(model, broom::tidy))  %>% 
+  unnest(tidy)
+
+tidy
+```
+
+
+T5: Create the below nested tibble
+
+```{r}
+#tidy <- groupLG %>% 
+#  mutate(tidy = map(model, broom::tidy))  %>% 
+#  unnest(tidy)
+
+tidy_conf <- tidy %>% 
+  mutate(tidy_conf = map(model, broom::confint_tidy)) %>% 
+  unnest(tidy_conf)
+
+tidy_conf
+```
+
+
+T6: Re-create the coefficient plot from David Robinson’s talk at the 2016 New York R Conference (look at slides for answer)
+
+
+```{r}
+tidy_conf %>%
+  filter(term == "height", conf.low > 0) %>% 
+  select(location, gender, estimate, conf.low, conf.high) 
+```
+
+
+
+```{r}
+
+plotten <- tidy_conf %>% 
+  filter(term == "height", conf.low > 0) %>% 
+  select(location, gender, estimate, conf.low, conf.high)
+
+plotten <- plotten %>% 
+  mutate(location_gender = paste(location, gender,sep= "_"))
+
+plotten
+```
+
+
+```{r}
+ggplot(data = plotten, mapping = aes(x = estimate, y = location_gender))+
+  geom_point()+
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high, height = 0.2))+
+  ggtitle("Estimated increase in weight per 1 cm gain in height")+
+  ylab("") 
+# labs(y = ..., title = ...)
+
+# theme_bw() 
+```
+
