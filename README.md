@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Untitled
 ================
 Viktor
@@ -33,3 +34,6 @@ You can also embed plots, for example:
 
 Note that the `echo = FALSE` parameter was added to the code chunk to
 prevent printing of the R code that generated the plot.
+=======
+# 2020_VickoT
+>>>>>>> 816fb6ec34a932d8ea2708e72b2270b5cf2dface
