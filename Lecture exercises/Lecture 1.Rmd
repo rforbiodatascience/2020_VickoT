@@ -1,0 +1,30 @@
+---
+title: "Notes from day 1"
+author: "Viktor"
+date: '2020-02-03'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+```{r}
+roll2 <- function(bone){
+  
+  dice<-sample(bone, 2, TRUE)
+  sum(dice)  
+}
+
+```
+```{r}
+roll2(1:34)
+```
+
+
+- CTRL + ALT  + I = new chunk
+- CTRL + SHIFT = knit document 
+- CTRL + SHIFT + ENTER = run chunk 

@@ -1,0 +1,201 @@
+---
+title: "NotesLecture2"
+author: "Viktor"
+date: '2020-02-10'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Basics from lexture 1
+## R Markdown
+```{r}
+a <- c(2,3)
+b<- c("sdf", "sase")
+c<- c(TRUE,FALSE)
+str(a)
+str(b)
+str(c)
+```
+
+violine plots - modality of the data 
+boxplots
+y-axis should start at 0
+remove reduntant information
+
+No 0-indexing in R
+
+
+
+
+```{r}
+install.packages("tidyverse")
+install.packages("devtools")
+library("devtools")
+install_github("ramhiser/datamicroarray")
+```
+
+
+```{r}
+library("tidyverse")
+library("datamicroarray")
+```
+
+```{r}
+data('gravier', package = 'datamicroarray')
+set.seed(676571)
+cancer_data=mutate(as_tibble(pluck(gravier,"x")),y=pluck(gravier,"y"),pt_id=1:length(pluck(gravier, "y")),age=round(rnorm(length(pluck(gravier,"y")),mean=55,sd=10),1))
+cancer_data=rename(cancer_data,event_label=y)
+cancer_data$age_group=cut(cancer_data$age,breaks=seq(10,100,by=10))
+```
+
+```{r}
+select(slice(cancer_data,1:8),pt_id,age,age_group,event_label,1:5)
+```
+
+
+Q1: What is this data?
+
+cancer_data
+
+Q2: How many rows and columns are there in the data set in total?
+
+```{r}
+ncol(cancer_data)
+nrow(cancer_data)
+dim(cancer_data)
+```
+Q3: Which are the variables and which are the observations in relation to rows and columns?
+C - variables
+R- observations
+(tidy data)
+
+T2: linegraph
+  geom_line()
+
+T3: boxplot of one variable
+
+```{r}
+ggplot(data = cancer_data,
+       mapping = aes(x = "my_gene", y = g1A01)) +
+  geom_boxplot()
+
+# x needs to be specified
+```
+
+T4: histogram of one variable
+
+```{r}
+ggplot(data = cancer_data, aes(x = age)) +
+  geom_histogram()
+
+# 30 is standard. can be changed
+```
+
+
+T5: densitogram of one variable
+
+```{r}
+ggplot(data = cancer_data, aes(x = age)) +
+  geom_density() # adjust = 0.5 (parameter) how precise the curve fits the data
+```
+Q4: Do all geoms require both x and y?
+No, geom_histogram() and geom_density() does not.
+
+
+T6: Pick your favourite gene and create a boxplot of expression levels stratified on the variable event_label
+
+```{r}
+ggplot(data = cancer_data,
+       mapping = aes(x = event_label, y = g2E09)) +
+  geom_boxplot()
+
+# stratisfied into good and poor responses, x = event_label
+```
+
+T7: Like T6, but with densitograms
+
+```{r}
+ggplot(data = cancer_data, aes(x = g2E09, group = event_label)) +
+  #above global mapping, as much as possible should be specified here. applies to everything below
+  # group generates a non colored stratification
+  geom_density()
+
+# fill parameter (instead of group), fill = event_label 
+
+```
+
+T8: Pick your favourite gene and create a boxplot of expression levels stratified on the variable age_group
+
+```{r}
+ggplot(data = cancer_data,
+       mapping = aes(x = age_group, y = g2E09, fill = event_label, )) +
+  geom_boxplot(alpha = 0.5)
+
+# data is stratified with event_label
+# labs() is good for labeling the plot. Can include different kinds of labels. 
+
+```
+
+
+T9: Pick your favourite gene and create a scatter-plot of expression levels versus age
+
+
+```{r}
+ggplot(data = cancer_data,
+       mapping = aes(x = age, y = g2E09, fill = event_label)) +
+  ggtitle("gene vs age") +
+  geom_point(alpha = 1) +
+  geom_smooth()
+
+```
+
+T10: Pick your favourite two genes and create a scatter-plot of their expression levels
+
+```{r}
+ggplot(data = cancer_data,
+       mapping = aes(x = g2E10, y = g2E09, fill = event_label)) +
+  ggtitle("gene vs age") +
+  geom_point(alpha = 0.5) +
+  geom_smooth() +
+  facet_grid(age_group ~ .) +
+  scale_fill_discrete(name = "Good or Bad")
+  
+```
+
+T11: Recreate the following plot
+
+```{r}
+ggplot(data = cancer_data,
+       mapping = aes(x = event_label, y = g2E09, fill = event_label)) +
+  geom_boxplot(alpha=0.5) +
+  coord_flip() +
+  theme(legend.position = "none") +
+  labs(title = "A prognostic DNA ...", subtitle = "Labeling: ....") +
+  xlab("Event After Diagnosis") +
+  ylab("Expression level of ...")
+  
+```
+
+Q5: Using your biological knowledge, what is your interpretation of the plot?
+
+T12: Recreate the following plot
+
+```{r}
+ggplot(data = cancer_data,
+       mapping = aes(x = age, y = g2E09)) +
+  
+  geom_point(aes(color = event_label),shape = 21) +
+  
+  geom_smooth(aes(color = event_label), method='lm', se = FALSE)  +
+  scale_fill_discrete(name = "Label") +
+  
+  labs(title = "A prognostic DNA ...",
+       subtitle = "Labeling: ....", 
+       x = "Subject age", 
+       y = "Expression level") 
+
+```
+
